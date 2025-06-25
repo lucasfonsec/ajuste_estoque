@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuste de Estoque</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-color: #1a1a2e;
+            --card-color: #16213e;
+            --primary-color: #0f3460;
+            --secondary-color: #e94560;
+            --font-color: #e0e0e0;
+            --font-light-color: #a7a9be;
+            --success-color: #4CAF50;
+            --error-color: #f44336;
+            --info-color: #2196F3;
+            --border-color: #5372f0;
+            --tutorial-btn-color: #1f487e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            padding: 2rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        header p {
+            font-size: 1rem;
+            color: var(--font-light-color);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--card-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border-left: 5px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card.static-info .result {
+             display: flex;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-left-color: var(--border-color);
+        }
+        
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--border-color);
+        }
+
+        .card .description {
+            font-size: 0.9rem;
+            color: var(--font-light-color);
+            margin-bottom: 1rem;
+            flex-grow: 1;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--primary-color);
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--border-color);
+            box-shadow: 0 0 5px var(--border-color);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: auto;
+        }
+        
+        button {
+            width: 100%;
+            padding: 0.85rem;
+            background-image: linear-gradient(45deg, var(--primary-color), var(--border-color));
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            box-shadow: 0 4px 15px rgba(83, 114, 240, 0.4);
+        }
+        
+        .tutorial-btn {
+            background: none;
+            background-color: var(--tutorial-btn-color);
+        }
+
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            background-color: rgba(15, 52, 96, 0.5);
+            font-weight: 500;
+            text-align: center;
+            min-height: 50px;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed var(--primary-color);
+            transition: all 0.4s ease;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .result.success {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .result.error {
+            background-color: rgba(244, 67, 54, 0.1);
+            border-color: var(--error-color);
+            color: var(--error-color);
+        }
+        
+        .result.info {
+            background-color: rgba(33, 150, 243, 0.1);
+            border-color: var(--info-color);
+            color: var(--info-color);
+        }
+
+        .hidden { display: none; }
+        
+        .result-title {
+            font-weight: bold;
+            display: block;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .modal-content {
+            background-color: var(--card-color);
+            margin: 5% auto;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            width: 90%;
+            max-width: 800px;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+            animation: slideIn 0.4s ease-in-out;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--primary-color);
+        }
+        
+        .modal-header h2 {
+            color: var(--border-color);
+        }
+
+        .close-btn {
+            color: var(--font-light-color);
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .modal-body {
+            padding-top: 1.5rem;
+            line-height: 1.8;
+            color: var(--font-light-color);
+        }
+        
+        .modal-body ul {
+            list-style-position: inside;
+            padding-left: 1rem;
+        }
+        
+        .modal-body li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .modal-body code {
+            background-color: var(--bg-color);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            color: var(--secondary-color);
+        }
+        
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+        
+        @keyframes slideIn {
+            from {transform: translateY(-50px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Ajuste de Estoque</h1>
+            <p>Ferramentas rápidas e tutoriais para os principais chamados.</p>
+        </header>
+
+        <div class="cards-grid">
+
+            <div class="card">
+                <h3>Troca de Código</h3>
+                <p class="description">Determina as NFs de entrada e saída para troca de código com base na região e tipo de local.</p>
+                <div class="form-group">
+                    <label for="inv-uf">Estado (UF)</label>
+                    <input type="text" id="inv-uf" placeholder="Ex: SP, MG, BA" maxlength="2">
+                </div>
+                <div class="form-group">
+                    <label for="inv-local">Tipo de Local</label>
+                    <select id="inv-local">
+                        <option value="">Selecione...</option>
+                        <option value="LOJA/LV">Loja / LV</option>
+                        <option value="CD/DQS">CD / DQS</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="inv-cd-substituto-group">
+                    <label for="inv-cd-substituto">Para CD em MG/GO/PA, é substituto?</label>
+                    <select id="inv-cd-substituto">
+                        <option value="nao">Não (CD Normal / DQS)</option>
+                        <option value="sim">Sim (CD Substituto)</option>
+                    </select>
+                </div>
+                <div class="result" id="result-inv"></div>
+                <div class="button-group">
+                    <button class="tutorial-btn" onclick="openTutorialModal('trocaCodigo')">Ver Roteiro</button>
+                    <button onclick="verificarTrocaInventario()">Verificar NFs</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Inventários Follow-up</h3>
+                <p class="description">Verifica o tipo de NF para divergências (DVG) de SAC, Transporte ou Operação de inventário.</p>
+                <div class="form-group">
+                    <label for="followup-tipo">Tipo de Divergência (DVG)</label>
+                    <select id="followup-tipo">
+                        <option value="">Selecione o tipo...</option>
+                        <option value="sac">DVG SAC</option>
+                        <option value="transporte">DVG Transporte (Reversa LV)</option>
+                        <option value="operacao">DVG Operação / Outros</option>
+                    </select>
+                </div>
+                <div class="result" id="result-followup"></div>
+                <div class="button-group">
+                    <button class="tutorial-btn" onclick="openTutorialModal('inventarioFollowUp')">Ver Roteiro</button>
+                    <button onclick="verificarInventarioFollowUp()">Verificar NF</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Reslog/Refaturamento/By noturno/Sinistro de Carga</h3>
+                <p class="description">Verifica se o tipo de NF é 605 ou 609 com base no código da filial (CD).</p>
+                <div class="form-group">
+                    <label for="reslog-filial">Código da Filial (CD)</label>
+                    <input type="number" id="reslog-filial" placeholder="Ex: 50, 94, 100">
+                </div>
+                <div class="result" id="result-reslog"></div>
+                <div class="button-group">
+                     <button class="tutorial-btn" onclick="openTutorialModal('reslog')">Ver Roteiro</button>
+                    <button onclick="verificarReslog()">Verificar NF</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Saldo (CD/DQS)</h3>
+                <p class="description">Define a NF de ajuste (735 ou 736) com base na região da filial.</p>
+                <div class="form-group">
+                    <label for="saldo-uf">Estado (UF)</label>
+                    <input type="text" id="saldo-uf" placeholder="Ex: SP, RJ, BA" maxlength="2">
+                </div>
+                <div class="result" id="result-saldo"></div>
+                <div class="button-group">
+                    <button class="tutorial-btn" onclick="openTutorialModal('ajusteSaldo')">Ver Roteiro</button>
+                    <button onclick="verificarSaldo()">Verificar NF</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Ajuste de Estoque</h3>
+                <p class="description">Guia rápido para NFs de diversos tipos de ajuste: Auditoria, Sentença, Brindes, etc.</p>
+                <div class="form-group">
+                    <label for="ajuste-tipo">Tipo de Ajuste de Estoque</label>
+                    <select id="ajuste-tipo">
+                        <option value="">Selecione o tipo...</option>
+                        <option value="1">Auditoria</option>
+                        <option value="2">Inventário Terceirizado</option>
+                        <option value="3">Inventário Logística</option>
+                        <option value="4">Cumprimento de Sentença</option>
+                        <option value="5">Auditoria Sinistro</option>
+                        <option value="6">Sinistro DQS</option>
+                        <option value="7">Baixa de Brinde</option>
+                    </select>
+                </div>
+                 <div class="form-group hidden" id="ajuste-auditoria-sinistro-group">
+                    <label for="ajuste-auditoria-sinistro">Auditoria é sinistro?</label>
+                    <select id="ajuste-auditoria-sinistro">
+                        <option value="nao">Não</option>
+                        <option value="sim">Sim</option>
+                    </select>
+                </div>
+                <div class="result" id="result-ajuste"></div>
+                 <div class="button-group">
+                    <button class="tutorial-btn" onclick="openTutorialModal('ajusteEstoque')">Ver Roteiro</button>
+                    <button onclick="verificarAjusteEstoque()">Verificar</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Baixa de Embalagem Vazia</h3>
+                <p class="description">Define a NF para baixa de embalagem (produto furtado), diferenciando Loja de CD.</p>
+                <div class="form-group">
+                    <label for="embalagem-local">Onde ocorreu?</label>
+                    <select id="embalagem-local">
+                        <option value="loja">Loja</option>
+                        <option value="cd">CD</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="embalagem-cd-erro-group">
+                    <label for="embalagem-cd-erro">Foi erro do CD?</label>
+                    <select id="embalagem-cd-erro">
+                        <option value="sim">Sim</option>
+                        <option value="nao">Não</option>
+                    </select>
+                </div>
+                <div class="result" id="result-embalagem"></div>
+                <div class="button-group">
+                    <button class="tutorial-btn" onclick="openTutorialModal('embalagemVazia')">Ver Roteiro</button>
+                    <button onclick="verificarBaixaEmbalagem()">Verificar NF</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Encerramento de Filiais</h3>
+                <p class="description">Define as NFs para transferência de estoque ao encerrar uma filial.</p>
+                <div class="form-group">
+                    <label for="encerramento-status">Situação da Filial no Sintegra</label>
+                     <select id="encerramento-status">
+                        <option value="ativa">Ativa</option>
+                        <option value="baixada">Baixada</option>
+                    </select>
+                </div>
+                <div class="result" id="result-encerramento"></div>
+                 <div class="button-group">
+                    <button class="tutorial-btn" onclick="openTutorialModal('encerramento')">Ver Roteiro</button>
+                    <button onclick="verificarEncerramento()">Verificar NFs</button>
+                </div>
+            </div>
+            
+            <div class="card static-info">
+                <h3>Acerto de Nota / Erro Digitação</h3>
+                <p class="description">Procedimento para corrigir notas com erro de digitação, executado pelo Fiscal.</p>
+                <div class="result" id="result-acerto-nota">
+                    <span class="result-title">Sistema: Gemco</span>
+                    <span><strong>Saída:</strong> NF 195</span>
+                    <span><strong>Entrada:</strong> NF 194</span>
+                    <span>(Começar pela saída)</span>
+                </div>
+                <div class="button-group">
+                    <button class="tutorial-btn" onclick="openTutorialModal('acertoNota')">Ver Roteiro</button>
+                </div>
+            </div>
+            
+            <div class="card static-info">
+                <h3>Baixa de Produto Alimentício</h3>
+                <p class="description">Procedimento para baixa de produtos alimentícios danificados.</p>
+                <div class="result" id="result-baixa-alimento">
+                    <span class="result-title">Sistema: REED</span>
+                    <span><strong>NF:</strong> 785</span>
+                    <span>(Exclusivo para Lojas)</span>
+                </div>
+                <div class="button-group">
+                    <button class="tutorial-btn" onclick="openTutorialModal('baixaAlimento')">Ver Roteiro</button>
+                </div>
+            </div>
+
+            <div class="card static-info">
+                <h3>Baixa por Atendimento/Erro</h3>
+                <p class="description">Ajuste de baixa por erro de atendimento, aprovado pela Prevenção e Perdas.</p>
+                <div class="result" id="result-baixa-atendimento">
+                    <span class="result-title">Sistema: REED</span>
+                     <span><strong>NF:</strong> 737</span>
+                    <span>(Abertura pelo SAC)</span>
+                </div>
+                <div class="button-group">
+                     <button class="tutorial-btn" onclick="openTutorialModal('baixaAtendimento')">Ver Roteiro</button>
+                </div>
+            </div>
+
+            <div class="card static-info">
+                <h3>Baixa para Descarte (Lojas)</h3>
+                <p class="description">Procedimento para descarte de produtos diversos em lojas.</p>
+                <div class="result" id="result-baixa-descarte">
+                    <span class="result-title">Sistema: REED</span>
+                     <span><strong>NF:</strong> 171</span>
+                    <span>(Requer e-mail autorizado)</span>
+                </div>
+                <div class="button-group">
+                    <button class="tutorial-btn" onclick="openTutorialModal('baixaDescarte')">Ver Roteiro</button>
+                </div>
+            </div>
+            
+            <div class="card static-info">
+                <h3>Baixa por Fraude / Site</h3>
+                <p class="description">Ajuste de baixa por suspeita de fraude, com autorização do time responsável.</p>
+                 <div class="result" id="result-baixa-fraude">
+                    <span class="result-title">Sistema: REED</span>
+                     <span><strong>NF:</strong> 171</span>
+                    <span>(Exclusivo para Lojas)</span>
+                </div>
+                <div class="button-group">
+                     <button class="tutorial-btn" onclick="openTutorialModal('baixaFraude')">Ver Roteiro</button>
+                </div>
+            </div>
+            
+             <div class="card static-info">
+                <h3>Sinistro (Exceto furto expediente)</h3>
+                <p class="description">Procedimento para sinistros diversos, como alagamentos, incêndios, etc.</p>
+                 <div class="result" id="result-sinistro-geral">
+                    <span class="result-title">NFs Variáveis</span>
+                    <span><strong>REED:</strong> NF 587 ou 171</span>
+                    <span><strong>GEMCO:</strong> NF 61</span>
+                     <span>(Verificar chamado para a NF correta)</span>
+                </div>
+                <div class="button-group">
+                     <button class="tutorial-btn" onclick="openTutorialModal('sinistroGeral')">Ver Roteiro</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tutorial-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Roteiro do Procedimento</h2>
+                <span class="close-btn" onclick="closeTutorialModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-body">
+                </div>
+        </div>
+    </div>
+
+<script>
+    const TUTORIALS = {
+        trocaCodigo: {
+            title: 'Roteiro: Troca de Código',
+            content: `<strong>Pré-requisito: O Custo de Inventário (C.M.U.P.) dos itens deve ser idêntico.</strong><ol><li>Acesse o Gemco → Consulta → Produtos.</li><li>Verifique o C.M.U.P. de ambos os códigos. Se for diferente, o chamado deve ser encerrado.</li><li>A quantidade máxima para ajuste é de 5 unidades.</li><li>Use a ferramenta para descobrir as NFs corretas de entrada e saída para a região.</li><li><strong>Realizando a Saída:</strong> Acesse Saídas Diversas, preencha as informações (Tipo NF, FL, CNPJ) e inclua na OBS: <code>TRC IDK (número do chamado)</code>.</li><li><strong>Realizando a Entrada:</strong> Acesse Movimentos → Entrada Nota Fiscal → Entradas, preencha os dados, incluindo a mesma OBS.</li><li>Preencha os pedidos de saída, NF de entrada e os tipos de NFs utilizadas nos comentários do chamado e na planilha de qualidade.</li></ol>`
+        },
+        inventarioFollowUp: {
+            title: 'Roteiro: Inventários Follow-up',
+            content: `Este chamado trata de divergências encontradas após o inventário. O procedimento depende do tipo de divergência.<br><br><strong>Tipos de DVG:</strong><ul><li><strong>DVG SAC:</strong> Utilizar <strong>NF 758</strong>.</li><li><strong>DVG Transporte (Reversa LV):</strong> Utilizar <strong>NF 611</strong>.</li><li><strong>DVG Operação / Outros:</strong> O tipo de NF segue as regras gerais de inventário por região. Utilize a ferramenta 'Troca de Código' para encontrar a NF correta com base no estado e no tipo de local (CD/DQS ou Loja/LV).</li></ul><strong>Roteiro Geral (Ajuste REED - Reversa LV):</strong><ol><li>Verifique a região para saber o tipo de NF.</li><li>Abra a planilha anexada no chamado.</li><li>Preencha a planilha modelo REED e ajuste no sistema REED.</li><li>Após o ajuste, vá ao Gemco → Mov. Saída, consulte o movimento e exporte a planilha de 'Saídas por item'.</li><li>Analise as duas planilhas para verificar baixas parciais ou itens não ajustados.</li><li>Informe o status no chamado, preencha a planilha de qualidade e anexe as planilhas do ajuste.</li><li>Envie um e-mail informando sobre qualquer item não ajustado por falta de saldo.</li></ol><strong>OBS:</strong> <code>INV Follow-up IDK</code>`
+        },
+        reslog: {
+            title: 'Roteiro: RESLOG / Sinistro de Carga',
+            content: `<strong>RESLOG:</strong><ol><li>Acesse Cadastros → Tipo de Nota e verifique se a flag "Utiliza Estoque Técnico" está habilitada para a NF (605 ou 609).</li><li>Baixe e organize a planilha do chamado.</li><li>Acesse Movimentos → Saídas diversas.</li><li>Preencha os campos: Tipo de Nota (605 ou 609), Filial Destino, Fornecedor (CNPJ).</li><li>Na OBS, digite: <code>RESLOG IDK (número do chamado)</code>.</li><li>Insira os códigos Gemco e quantidades.</li><li>Na área de operação, digite <code>AUDI</code> e pressione TAB.</li><li>Clique em Confirmação e adicione comentários ao chamado sobre qualquer baixa parcial.</li></ol><strong>Sinistro de Carga (feito pelo CD):</strong><ol><li>O processo é semelhante ao RESLOG, mas na OBS, inclua <code>SINISTRO CARGA IDK (número do chamado)</code>.</li><li>Na área de operação, digite <code>SINISTRO</code> e pressione TAB.</li><li>Anote o pedido no chamado e envie para o responsável.</li></ol>`
+        },
+        ajusteSaldo: {
+            title: 'Roteiro: Ajuste de Saldo (CD/DQS)',
+            content: `<strong>Abertura:</strong> CD, DQS, Reversa LV. Lojas NÃO podem abrir.<br><strong>Tipos de NF:</strong> 735 e 736 (Verificar no Painel de Ajuste ou usar a ferramenta).<br><br><strong>Lançamento NF 736 (Entrada):</strong><ol><li>Acesse Movimentos → Entrada Nota → Entradas.</li><li>Preencha Tipo de NF (736), Filial, CNPJ, código Gemco, quantidade e preço.</li><li>Clique em "Dados Nota". Para itens com valor 0,00, digite 1,00.</li><li>Adicione a Obs: <code>SALDO IDK (número do chamado)</code>.</li><li>Clique em "Dados Gerais", preencha Transportadora e Placa com dados aleatórios e confirme.</li><li>Registre o número da NF no chamado e na planilha de qualidade.</li></ol><strong>Lançamento NF 735 (Saída):</strong><ol><li>Acesse Movimentos → Saídas Diversas.</li><li>Preencha Tipo de NF (735), Filial, e na OBS: <code>SALDO IDK (número do chamado)</code>.</li><li>Cole o código Gemco, verifique a quantidade e clique em Confirmação.</li><li>Registre o número da NF no chamado e na planilha de qualidade.</li></ol>`
+        },
+         ajusteEstoque: {
+            title: 'Roteiro: Ajuste de Estoque (Geral)',
+            content: `Este chamado possui vários subtipos. O procedimento varia para cada um.<ul><li><strong>Auditoria:</strong> Via REED. Se for baixa por sinistro, usar NF 171. Caso contrário, usar NF de inventário da região. OBS: <code>auditoria idk ...</code></li><li><strong>Auditoria Sinistro:</strong> Via Gemco, com NF de inventário da região.</li><li><strong>Sinistro DQS:</strong> Via Gemco, NF 680. No chamado, comentar: <i>"Esse ajuste foi realizado pelo Rodney, por favor siga na conferência."</i></li><li><strong>Cumprimento de Sentença:</strong> Apenas Jurídico abre. Via REED, sempre baixa. NF 171. OBS: <code>sentença idk ...</code></li><li><strong>Inventário Terceirizado/Logística:</strong> Apenas setor de inventário abre. Via Gemco → Saídas diversas. NF de acordo com inventário. OBS: <code>INV IDK ...</code></li><li><strong>Baixa de Brinde:</strong> Lojas abrem. Via Gemco → Saídas diversas. NF 205. Requer e-mail de autorização do time de eventos.</li></ul>`
+        },
+        embalagemVazia: {
+            title: 'Roteiro: Baixa de Embalagem Vazia',
+            content: `Ocorre quando o produto é furtado, mas a embalagem fica.<ul><li><strong>LOJA:</strong> Ajuste via REED. Usar <strong>NF 586</strong>.</li><li><strong>CD (Erro do CD):</strong> Ajuste via Gemco. Usar <strong>NF de inventário</strong> (de acordo com a região).</li><li><strong>CD (Outros motivos):</strong> Ajuste via Gemco → Saídas Diversas. Usar <strong>NF 589 e 567</strong>.</li></ul><strong>Importante:</strong> Para ajustes no Gemco, esperar a nota faturar para aprovar o chamado.`
+        },
+        encerramento: {
+            title: 'Roteiro: Encerramento de Filiais',
+            content: `O procedimento depende da situação cadastral da filial no Sintegra.<ol><li>Consulte a situação cadastral da filial no Sintegra.</li><li><strong>Se a filial estiver ATIVA no Sintegra:</strong> Use a <strong>NF 513</strong> para a saída dos produtos.</li><li><strong>Se a filial estiver BAIXADA no Sintegra:</strong> Use a <strong>NF 193</strong> para a saída. A NF 193 não vai para a Sefaz, evitando rejeição.</li><li><strong>Para a ENTRADA na filial de destino:</strong> A <strong>NF 192</strong> é sempre usada.</li><li>Se a filial a ser esvaziada não estiver ativa no Gemco, peça a liberação no sistema.</li></ol>`
+        },
+        acertoNota: {
+            title: 'Roteiro: Acerto de Nota / Erro de Digitação',
+            content: `<ul><li><strong>Fluxo:</strong> Fiscal → CSC.</li><li><strong>Ajuste:</strong> Gemco.</li><li><strong>Passo 1 (Saída):</strong> Realize a saída do item incorreto. Acesse Saídas Diversas e use a <strong>NF 195</strong>.</li><li><strong>Passo 2 (Entrada):</strong> Realize a entrada do item correto. Use a <strong>NF 194</strong>.</li><li>Acompanhar a saída e a entrada para aprovar o chamado.</li></ul>`
+        },
+        baixaAlimento: {
+            title: 'Roteiro: Baixa de Produto Alimentício',
+            content: `<ul><li><strong>Responsável:</strong> Apenas a Loja pode realizar.</li><li><strong>Sistema:</strong> REED.</li><li><strong>Observação:</strong> Incluir <code>USO CONSUMO IDK</code>.</li><li><strong>Tipo de NF:</strong> 785.</li><li>Preencher a aba "Saída" na planilha de qualidade.</li></ul>`
+        },
+        baixaAtendimento: {
+            title: 'Roteiro: Baixa por Atendimento/Erro',
+            content: `<ul><li><strong>Abertura:</strong> Feita pelo SAC. Não necessita análise, pois já foi aprovado por Prevenção e Perdas.</li><li><strong>Responsável:</strong> LOJA.</li><li><strong>Sistema:</strong> REED.</li><li>É sempre uma saída (baixa).</li><li><strong>Tipo de NF:</strong> 737.</li><li>Após o ajuste, o chamado pode ser aprovado diretamente.</li></ul>`
+        },
+        baixaDescarte: {
+            title: 'Roteiro: Baixa para Descarte (Lojas)',
+            content: `<ul><li><strong>Responsável:</strong> LOJA.</li><li><strong>Sistema:</strong> REED.</li><li><strong>Condição:</strong> Deve haver um e-mail autorizando a baixa. Caso contrário, o chamado deve ser recusado.</li><li><strong>Tipo de NF:</strong> 171.</li></ul>`
+        },
+        baixaFraude: {
+            title: 'Roteiro: Baixa por Fraude / Site',
+            content: `<ul><li><strong>Responsável:</strong> Apenas Lojas.</li><li><strong>Condição:</strong> Requer e-mail de autorização do time de Fraude ou Casos Especiais. (Auditoria não precisa estar no e-mail).</li><li><strong>Sistema:</strong> REED.</li><li><strong>Tipo de NF:</strong> 171.</li></ul>`
+        },
+        sinistroGeral: {
+            title: 'Roteiro: Sinistro (Exceto furto durante expediente)',
+            content: `Procedimento para eventos como alagamento, incêndio, etc. Não baixar imobilizado.<ul><li>Fazer um "bate" das NFs (verificar no painel e no chamado).</li><li>Em caso de divergência, não recusar, apenas voltar a etapa do chamado.</li><li>O tipo de NF correto geralmente está escrito no chamado. As opções são:<ul><li><strong>NF 587 ou 171:</strong> Ajuste via REED. Preencher planilha modelo e subir no sistema.</li><li><strong>NF 61:</strong> Ajuste via Gemco → Saídas Diversas. Preencher todos os dados e <strong>lembrar de mudar o valor na coluna 'Preço'</strong>.</li></ul></li></ul>`
+        }
+    };
+    
+    // --- LÓGICA DE NEGÓCIO (Funções de Verificação) ---
+    
+    const REGRAS_INVENTARIO = {
+        SUDESTE_AMPLIADO: { estados: ['MT', 'MS', 'RJ', 'SP', 'SC', 'RS', 'PR', 'ES'], 'LOJA/LV': { entrada: '8 / 192', saida: '58 / 193' }, 'CD/DQS': { entrada: '192', saida: '193' }},
+        NORTE_NORDESTE: { estados: ['PI', 'MA', 'RN', 'CE', 'PB', 'PE', 'AL', 'BA', 'SE'], 'LOJA/LV': { entrada: '548', saida: '549' }, 'CD/DQS': { entrada: '673', saida: '674' }},
+        MG_GO_PA: { estados: ['MG', 'GO', 'PA'], 'LOJA/LV': { entrada: '192', saida: '513' }, 'CD/DQS': { sim: { entrada: '192', saida: '562' }, nao: { entrada: '192', saida: '647' }}}
+    };
+    
+    const CDS_SUBSTITUTO = [50, 94, 300, 350, 400, 590, 991, 994, 996, 1094, 1100, 1500, 2500, 2900, 5200, 5350];
+    const REGIOES_TIPO_735 = ["MT", "MS", "RJ", "SP", "SC", "RS", "PR", "ES", "MG", "GO", "PA"];
+
+    // (Funções de verificação e UI/Modal permanecem as mesmas)
+    
+    function verificarTrocaInventario() {
+        const uf = document.getElementById('inv-uf').value.trim().toUpperCase();
+        const local = document.getElementById('inv-local').value;
+        const resultDiv = document.getElementById('result-inv');
+
+        if (!uf || !local) {
+            displayResult(resultDiv, "Por favor, preencha o Estado e o Tipo de Local.", "error"); return;
+        }
+
+        let resultado = null; let regraEncontrada = false;
+
+        for (const regiaoKey in REGRAS_INVENTARIO) {
+            const dadosRegiao = REGRAS_INVENTARIO[regiaoKey];
+            if (dadosRegiao.estados.includes(uf)) {
+                regraEncontrada = true;
+                if (regiaoKey === 'MG_GO_PA' && local === 'CD/DQS') {
+                    const isSubstituto = document.getElementById('inv-cd-substituto').value;
+                    resultado = dadosRegiao[local][isSubstituto];
+                } else {
+                    resultado = dadosRegiao[local];
+                }
+                break;
+            }
+        }
+
+        if (!regraEncontrada) {
+            displayResult(resultDiv, `Estado '${uf}' não encontrado nas regras definidas.`, "error");
+        } else if (!resultado) {
+             displayResult(resultDiv, `Tipo de local '${local}' inválido para a região de ${uf}.`, "error");
+        } else {
+            const output = `<span class="result-title">Para ${uf} em ${local}:</span><span><strong>NF Entrada:</strong> ${resultado.entrada}</span><span><strong>NF Saída:</strong> ${resultado.saida}</span>`;
+            displayResult(resultDiv, output, "success");
+        }
+    }
+
+    function verificarInventarioFollowUp() {
+        const tipo = document.getElementById('followup-tipo').value;
+        const resultDiv = document.getElementById('result-followup');
+
+        if (!tipo) {
+            displayResult(resultDiv, "Por favor, selecione o tipo de divergência.", "error"); return;
+        }
+
+        let output = "";
+        let type = "success";
+        
+        switch(tipo) {
+            case 'sac':
+                output = `<span class="result-title">DVG SAC:</span><span>Utilizar <strong>NF 758</strong></span>`;
+                break;
+            case 'transporte':
+                output = `<span class="result-title">DVG Transporte (Reversa LV):</span><span>Utilizar <strong>NF 611</strong></span>`;
+                break;
+            case 'operacao':
+                output = `<span class="result-title">DVG Operação / Outros:</span><span>Use as regras de inventário por região. Utilize a ferramenta <strong>'Troca de Código'</strong> para encontrar a NF correta.</span>`;
+                type = "info";
+                break;
+        }
+        displayResult(resultDiv, output, type);
+    }
+
+    function verificarReslog() {
+        const filialInput = document.getElementById('reslog-filial');
+        const filial = parseInt(filialInput.value);
+        const resultDiv = document.getElementById('result-reslog');
+        
+        if (isNaN(filial)) {
+            displayResult(resultDiv, "Por favor, digite um número de filial válido.", "error"); return;
+        }
+
+        if (CDS_SUBSTITUTO.includes(filial)) {
+            displayResult(resultDiv, "<span class='result-title'>Tipo de NF: 609 (Substitutos)</span>", "success");
+        } else {
+            displayResult(resultDiv, `<span class="result-title">Tipo de NF: 605 (Normal)</span><span>Lembrete: CD necessita que a flag 'Estoque Técnico' esteja ATIVADA.</span>`, "success");
+        }
+    }
+
+    function verificarSaldo() {
+        const uf = document.getElementById('saldo-uf').value.trim().toUpperCase();
+        const resultDiv = document.getElementById('result-saldo');
+
+        if (!uf) {
+            displayResult(resultDiv, "Por favor, digite a sigla do Estado (UF).", "error"); return;
+        }
+        
+        if (REGIOES_TIPO_735.includes(uf)) {
+            displayResult(resultDiv, `Para ${uf}, usar Tipo de NF: 735`, "success");
+        } else {
+            displayResult(resultDiv, `Para ${uf}, usar Tipo de NF: 736`, "success");
+        }
+    }
+    
+    function verificarAjusteEstoque() {
+        const op = document.getElementById('ajuste-tipo').value;
+        const resultDiv = document.getElementById('result-ajuste');
+        let output = "";
+
+        if (!op) {
+            displayResult(resultDiv, "Selecione uma opção válida.", "error"); return;
+        }
+        
+        switch(op) {
+            case "1":
+                const isSinistro = document.getElementById('ajuste-auditoria-sinistro').value;
+                output = (isSinistro === 'sim') ? "Usar o tipo de NF 171." : "Usar NF de inventário da região.";
+                break;
+            case "2": case "3": case "5":
+                output = "Usar NF de inventário da região.";
+                break;
+            case "4":
+                output = "Usar o tipo de NF 171.";
+                break;
+            case "6":
+                output = "Usar o tipo de NF 680.";
+                break;
+            case "7":
+                output = "Usar o tipo de NF 205.";
+                break;
+        }
+        displayResult(resultDiv, output, "success");
+    }
+
+    function verificarBaixaEmbalagem() {
+        const local = document.getElementById('embalagem-local').value;
+        const resultDiv = document.getElementById('result-embalagem');
+        let output = "";
+
+        if (local === 'loja') {
+            output = "<strong>LOJA:</strong> Usar o tipo de NF 586 (via REED).";
+        } else {
+            const isErroCD = document.getElementById('embalagem-cd-erro').value;
+            output = (isErroCD === 'sim') ? "<strong>CD (Erro Próprio):</strong> Usar NF de inventário da região." : "<strong>CD (Outros):</strong> Usar NF 589 e 567.";
+        }
+        displayResult(resultDiv, output, "success");
+    }
+
+    function verificarEncerramento() {
+        const status = document.getElementById('encerramento-status').value;
+        const resultDiv = document.getElementById('result-encerramento');
+        let output = (status === 'ativa') ? `<span class="result-title">Filial ATIVA:</span><span><strong>NF Saída:</strong> 513</span><span><strong>NF Entrada:</strong> 192</span>` : `<span class="result-title">Filial BAIXADA:</span><span><strong>NF Saída:</strong> 193</span><span><strong>NF Entrada:</strong> 192</span>`;
+        displayResult(resultDiv, output, "success");
+    }
+
+    function displayResult(element, message, type) {
+        element.innerHTML = message;
+        element.className = 'result';
+        element.style.display = 'flex';
+        if (type) element.classList.add(type);
+    }
+    
+    const modal = document.getElementById('tutorial-modal'), modalTitle = document.getElementById('modal-title'), modalBody = document.getElementById('modal-body');
+    function openTutorialModal(id) { if (TUTORIALS[id]) { modalTitle.innerText = TUTORIALS[id].title; modalBody.innerHTML = TUTORIALS[id].content; modal.style.display = "block"; }}
+    function closeTutorialModal() { modal.style.display = "none"; }
+    window.onclick = (e) => { if (e.target == modal) closeTutorialModal(); };
+    
+    document.getElementById('inv-local').addEventListener('change', function() { document.getElementById('inv-cd-substituto-group').classList.toggle('hidden', !(this.value === 'CD/DQS' && ['MG', 'GO', 'PA'].includes(document.getElementById('inv-uf').value.trim().toUpperCase()))); });
+    document.getElementById('inv-uf').addEventListener('input', () => document.getElementById('inv-local').dispatchEvent(new Event('change')));
+    document.getElementById('ajuste-tipo').addEventListener('change', function() { document.getElementById('ajuste-auditoria-sinistro-group').classList.toggle('hidden', this.value !== '1'); });
+    document.getElementById('embalagem-local').addEventListener('change', function() { document.getElementById('embalagem-cd-erro-group').classList.toggle('hidden', this.value !== 'cd'); });
+
+</script>
+
+</body>
+</html>
